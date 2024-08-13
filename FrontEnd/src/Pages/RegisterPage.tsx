@@ -1,5 +1,4 @@
 import CardWrapper from "@/components/CardWrapper";
-
 import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -13,9 +12,19 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
+import { registerUser, clearState } from "../../Redux/userSlice";
+import { useDispatch, useSelector } from "react-redux";
+import { AppDispatch, RootState } from "Redux/store";
+import { useEffect } from "react";
+
 const RegisterPage = () => {
+  // Hooks
   const { toast } = useToast();
+  const dispatch = useDispatch<AppDispatch>();
+  const navigate = useNavigate();
+  const { status, error } = useSelector((state: RootState) => state.user);
 
   // Schema for Register Form
   const schema = z
@@ -54,12 +63,28 @@ const RegisterPage = () => {
 
   const onSubmit = (data: z.infer<typeof schema>) => {
     console.log(data);
-    toast({
-      title: "Your have been registered!",
-      description: "Data Submitted",
-      variant: "default",
-    });
+    dispatch(registerUser(data));
+    console.log(status);
   };
+  useEffect(() => {
+    if (status === "succeeded") {
+      toast({
+        title: "You have been registered!",
+        description: "Data Submitted",
+        variant: "default",
+      });
+      dispatch(clearState());
+      setTimeout(() => {
+        navigate("/");
+      }, 1000);
+    } else if (status === "failed") {
+      toast({
+        title: `${error}`,
+        description: "Please try again",
+        variant: "destructive",
+      });
+    }
+  }, [status, toast, error]);
 
   return (
     <div className=" border  min-h-[100vh] flex items-center justify-center ">
