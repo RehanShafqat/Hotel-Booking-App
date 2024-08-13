@@ -3,7 +3,7 @@ import bcrypt from "bcryptjs";
 export type UserType = {
   _id: string;
   email: string;
-  pasword: string;
+  password: string;
   userName: string;
 };
 
