@@ -13,9 +13,40 @@ import { Form } from "@/components/ui/form";
 import { z } from "zod";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
-
+import { AppDispatch, RootState } from "../../Redux/store";
+import { clearState, getUserDetails, loginUser } from "../../Redux/userSlice";
+import { useDispatch, useSelector } from "react-redux";
+import { useEffect } from "react";
+import { LoaderIcon } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 const LoginPage = () => {
+  //hooks
+
   const { toast } = useToast();
+  const dispatch = useDispatch<AppDispatch>();
+  const navigate = useNavigate();
+  const { status, error } = useSelector((state: RootState) => state.user);
+
+  useEffect(() => {
+    if (status === "succeeded") {
+      toast({
+        title: "Logged In!",
+        description: "You have been logged in successfully",
+        variant: "success",
+      });
+      dispatch(clearState());
+      setTimeout(() => {
+        navigate("/Home");
+      }, 1000);
+    } else if (status === "failed") {
+      toast({
+        title: `${error}`,
+        description: "Sign in failed",
+        variant: "destructive",
+      });
+    }
+  }, [status, error, toast]);
+
   const schema = z.object({
     email: z.string().email({
       message: "Please Enter valid Email",
@@ -34,15 +65,11 @@ const LoginPage = () => {
   });
 
   const submitClick = (data: z.infer<typeof schema>) => {
-    toast({
-      title: "You have successfully logged in!",
-      description: "Data Submitted",
-    });
-    console.log(data);
+    dispatch(loginUser(data));
   };
 
   return (
-    <div className=" border  min-h-[100vh] flex items-center justify-center ">
+    <div className=" border   min-h-[100vh] flex items-center justify-center ">
       <CardWrapper
         title="Login"
         Label="Login to your account"
@@ -93,6 +120,9 @@ const LoginPage = () => {
                   )}
                 ></FormField>
                 <Button type="submit" className="w-full">
+                  {status === "loading" && (
+                    <LoaderIcon className="mr-2 h-4 w-4 animate-spin" />
+                  )}
                   Submit
                 </Button>
               </div>

@@ -18,6 +18,7 @@ import { registerUser, clearState } from "../../Redux/userSlice";
 import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch, RootState } from "Redux/store";
 import { useEffect } from "react";
+import { LoaderIcon } from "lucide-react";
 
 const RegisterPage = () => {
   // Hooks
@@ -60,11 +61,8 @@ const RegisterPage = () => {
       confirmPassword: "",
     },
   });
-
   const onSubmit = (data: z.infer<typeof schema>) => {
-    console.log(data);
     dispatch(registerUser(data));
-    console.log(status);
   };
   useEffect(() => {
     if (status === "succeeded") {
@@ -169,7 +167,14 @@ const RegisterPage = () => {
                     </FormItem>
                   )}
                 ></FormField>
-                <Button type="submit" className="w-full ">
+                <Button
+                  type="submit"
+                  className="w-full"
+                  disabled={status === "loading" || status === "succeeded"}
+                >
+                  {status === "loading" && (
+                    <LoaderIcon className="mr-2 h-4 w-4 animate-spin" />
+                  )}
                   Submit
                 </Button>
               </div>

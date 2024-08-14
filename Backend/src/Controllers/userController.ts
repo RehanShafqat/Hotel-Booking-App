@@ -3,6 +3,7 @@ import customError from "../Middlewares/customError";
 import userModel, { UserType } from "../Models/user";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcryptjs";
+import { userDbResponse } from "../../Types/userTypes";
 export const registerUser = async (
   req: Request,
   res: Response,
@@ -62,7 +63,9 @@ export const loginUser = async (
     }
 
     //find User in the database
-    let user = await userModel.findOne({ email: email });
+    const user: userDbResponse | null = await userModel.findOne({
+      email: email,
+    });
     if (!user) {
       return next(new customError("User not found", 404));
     }
@@ -73,7 +76,7 @@ export const loginUser = async (
 
     if (isPasswordCorrect) {
       const token = await jwt.sign(
-        { user_id: user.id },
+        { user_id: user._id },
         process.env.JWT_SECRET_KEY as string,
         { expiresIn: "1d" }
       );
@@ -87,8 +90,10 @@ export const loginUser = async (
         .json({
           success: true,
           message: "User logged in successfully",
-          user,
-          token,
+          user: {
+            email: user.email,
+            userName: user.userName,
+          },
         });
     } else {
       return next(new customError("Invalid Credentials", 401));
@@ -96,4 +101,17 @@ export const loginUser = async (
   } catch (error) {
     return next(new customError((error as Error).message, 500));
   }
+};
+
+export const getUserDetails = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  const { user_id } = req.body;
+  const user = await userModel.findOne({ _id: user_id });
+  res.status(200).json({
+    email: user?.email,
+    userName: user?.userName,
+  });
 };
